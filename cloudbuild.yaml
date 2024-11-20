@@ -1,0 +1,31 @@
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+steps:
+  # Step 1: Build the Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'gcr.io/$PROJECT_ID/audio-features-allin1:$COMMIT_SHA', '.']
+
+  # Step 2: Push the Docker image to Google Container Registry (GCR)
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/audio-features-allin1:$COMMIT_SHA']
+
+  # Step 3: Replace the Docker image in kubernetes cluster
+  - name: 'gcr.io/cloud-builders/kubectl'
+    args: [ 'set', 'image', 'deployment/audio-features-allin1', 'audio-features-allin1-sha256-1=gcr.io/$PROJECT_ID/audio-features-allin1:$COMMIT_SHA' ]
+
+    secretEnv: ['AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY']
+    env:
+      - 'TORCHAUDIO_USE_BACKEND_DISPATCHER=1'
+      - 'CLOUDSDK_COMPUTE_ZONE=us-central1'
+      - 'CLOUDSDK_CONTAINER_CLUSTER=stems-demucs-cluster'
+
+images:
+  - 'gcr.io/$PROJECT_ID/audio-features-allin1:$COMMIT_SHA'
+
+availableSecrets:
+  secretManager:
+    - versionName: projects/427595915362/secrets/stems-demucs-aws-access-id/versions/latest
+      env: AWS_ACCESS_KEY_ID
+    - versionName: projects/427595915362/secrets/stems-demucs-aws-access-key/versions/latest
+      env: AWS_SECRET_ACCESS_KEY

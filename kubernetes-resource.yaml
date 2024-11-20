@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: "Deployment"
+metadata:
+  name: "stems-demucs-cluster"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: "audio-features-allin1"
+  template:
+    metadata:
+      labels:
+        app: "audio-features-allin1"
+    spec:
+      nodeSelector:
+        cloud.google.com/gke-accelerator: 'nvidia-tesla-t4'
+      containers:
+        - name: "audio-features-allin1"
+          image: "gcr.io/$PROJECT_ID/audio-features-allin1:$COMMIT_SHA"
+          ports:
+            - containerPort: 80
+          resources:
+            limits:
+              nvidia.com/gpu: "1" # Request 1 NVIDIA T4 GPU
+              cpu: "8"
+              memory: "32Gi"
+            requests:
+              nvidia.com/gpu: "0.5" # Request 1 NVIDIA T4 GPU
+              cpu: "4"
+              memory: "16Gi"
+          livenessProbe:
+            httpGet:
+              path: /                 # The path to check for the liveness probe
+              port: 80                # The port to check on
+            initialDelaySeconds: 15   # Wait this many seconds before starting the probe
+            periodSeconds: 10         # Check the probe every 10 seconds
+          readinessProbe:
+            httpGet:
+              path: /                 # The path to check for the readiness probe
+              port: 80                # The port to check on
+            initialDelaySeconds: 15   # Wait this many seconds before starting the probe
+            periodSeconds: 10         # Check the probe every 5 seconds

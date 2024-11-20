@@ -20,6 +20,7 @@ from .typings import AnalysisResult, PathLike
 
 def analyze(
   paths: Union[PathLike, List[PathLike]],
+  demucs_paths: List[PathLike],
   out_dir: PathLike = None,
   visualize: Union[bool, PathLike] = False,
   sonify: Union[bool, PathLike] = False,
@@ -114,11 +115,12 @@ def analyze(
 
   # Analyze the tracks that are not analyzed yet.
   if todo_paths:
-    # Run HTDemucs for source separation only for the tracks that are not analyzed yet.
-    demix_paths = demix(todo_paths, demix_dir, device)
+    if len(demucs_paths) == 0
+        # Run HTDemucs for source separation only for the tracks that are not analyzed yet.
+        demucs_paths = demix(todo_paths, demix_dir, device)
 
     # Extract spectrograms for the tracks that are not analyzed yet.
-    spec_paths = extract_spectrograms(demix_paths, spec_dir, multiprocess)
+    spec_paths = extract_spectrograms(demucs_paths, spec_dir, multiprocess)
 
     # Load the model.
     model = load_pretrained_model(
@@ -164,12 +166,13 @@ def analyze(
     print(f'=> Sonified tracks are successfully saved to {sonify}')
 
   if not keep_byproducts:
-    for path in demix_paths:
-      for stem in ['bass', 'drums', 'other', 'vocals']:
-        (path / f'{stem}.wav').unlink(missing_ok=True)
-      rmdir_if_empty(path)
-    rmdir_if_empty(demix_dir / 'htdemucs')
-    rmdir_if_empty(demix_dir)
+# don't need this part since we are providing stem files via temp folder
+#     for path in demucs_paths:
+#       for stem in ['bass', 'drums', 'other', 'vocals']:
+#         (path / f'{stem}.wav').unlink(missing_ok=True)
+#       rmdir_if_empty(path)
+#     rmdir_if_empty(demix_dir / 'htdemucs')
+#     rmdir_if_empty(demix_dir)
 
     for path in spec_paths:
       path.unlink(missing_ok=True)
