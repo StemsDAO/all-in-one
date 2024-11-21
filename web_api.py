@@ -3,6 +3,7 @@ from fastapi import FastAPI
 import os
 from tempfile import NamedTemporaryFile, TemporaryDirectory
 import requests
+from contextlib import ExitStack
 
 from web.app_types import GetAudioFeaturesBaseRequest
 from web.utils import TimeTrack
