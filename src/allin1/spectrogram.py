@@ -14,7 +14,7 @@ def extract_spectrograms(demix_paths: List[Path], spec_dir: Path, multiprocess: 
   spec_paths = []
   for src in demix_paths:
     srcName = ''
-    if hasattr(obj, 'name'):
+    if hasattr(src, 'name'):
         srcName = src.name
     else:
         srcName = str(src)
