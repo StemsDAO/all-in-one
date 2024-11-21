@@ -115,7 +115,7 @@ def analyze(
 
   # Analyze the tracks that are not analyzed yet.
   if todo_paths:
-    if len(demucs_paths) == 0
+    if len(demucs_paths) == 0:
         # Run HTDemucs for source separation only for the tracks that are not analyzed yet.
         demucs_paths = demix(todo_paths, demix_dir, device)
 
