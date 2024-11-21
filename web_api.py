@@ -42,11 +42,12 @@ async def get_audio_features(r: GetAudioFeaturesBaseRequest):
             drums_file_path = get_temp_file_downloaded(ctx=stack, dir=temp_dir, suffix="drums.wav", url=r.drums_path)
             music_file_path = get_temp_file_downloaded(ctx=stack, dir=temp_dir, suffix="other.wav", url=r.music_path)
             vocals_file_path = get_temp_file_downloaded(ctx=stack, dir=temp_dir, suffix="vocals.wav", url=r.vocals_path)
+            demucs_paths = [bass_file_path, drums_file_path, music_file_path, vocals_file_path]
 
             with TimeTrack("allin1.rhythm"):
                 data = analyze(
                     paths=str(mix_file_path),
-                    demucs_paths=[str(bass_file_path), str(drums_file_path), str(music_file_path), str(vocals_file_path)]
+                    demucs_paths=demucs_paths,
                     visualize=False,
                     sonify=False,
                     device='cuda',
