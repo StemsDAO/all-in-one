@@ -21,8 +21,7 @@ def get_temp_file_downloaded(ctx, dir, file_name, url):
     file_response = requests.get(url)
     file.write(file_response.content)
     file.flush()
-    file_path = Path(file.name)
-    return file_path
+    return Path(file.name)
 
 def upload_to_s3(file_name, bucket_name, object_name):
     try:
@@ -45,7 +44,7 @@ async def get_audio_features(r: GetAudioFeaturesBaseRequest):
             music_file_path = get_temp_file_downloaded(ctx=stack, dir=temp_dir, file_name="other.wav", url=r.music_path)
             vocals_file_path = get_temp_file_downloaded(ctx=stack, dir=temp_dir, file_name="vocals.wav", url=r.vocals_path)
             # demucs_paths = [bass_file_path, drums_file_path, music_file_path, vocals_file_path]
-            demucs_paths = [temp_dir]
+            demucs_paths = [Path(temp_dir)]
 
             with TimeTrack("allin1.rhythm"):
                 data = analyze(
