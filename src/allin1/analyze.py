@@ -74,7 +74,7 @@ def analyze(
   Union[AnalysisResult, List[AnalysisResult]]
       Analysis results for the provided audio files.
   """
-
+  results = []
   # Clean up the arguments.
   spec_dir = mkpath(spec_dir)
 
