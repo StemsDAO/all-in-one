@@ -21,7 +21,7 @@ def get_temp_file_downloaded(ctx, dir, suffix, url):
     file.write(file_response.content)
     file.flush()
     file_path = Path(file.name)
-    return str(file_path)
+    return file_path
 
 def upload_to_s3(file_name, bucket_name, object_name):
     try:

@@ -13,13 +13,7 @@ def extract_spectrograms(demix_paths: List[Path], spec_dir: Path, multiprocess: 
   todos = []
   spec_paths = []
   for src in demix_paths:
-    srcName = ''
-    if hasattr(src, 'name'):
-        srcName = src.name
-    else:
-        srcName = src
-
-    dst = spec_dir / f'{srcName}.npy'
+    dst = spec_dir / f'{src.name}.npy'
     spec_paths.append(dst)
     if dst.is_file():
       continue
