@@ -16,7 +16,7 @@ path = "/dev/shm"
 toDelete = True
 
 def get_temp_file_downloaded(ctx, dir, file_name, url):
-    file_path = dir / file_name
+    file_path = dir / Path(file_name)
     file = open(file_path, "wb")
     file_response = requests.get(url)
     file.write(file_response.content)
