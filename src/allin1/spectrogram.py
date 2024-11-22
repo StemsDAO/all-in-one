@@ -65,10 +65,27 @@ def _extract_spectrogram(args: Tuple[Path, Path, SequentialProcessor]):
 
   dst.parent.mkdir(parents=True, exist_ok=True)
 
-  sig_bass = Signal(src / 'bass.wav', num_channels=1)
-  sig_drums = Signal(src / 'drums.wav', num_channels=1)
-  sig_other = Signal(src / 'other.wav', num_channels=1)
-  sig_vocals = Signal(src / 'vocals.wav', num_channels=1)
+  bass_file = Path(src) / 'bass.wav'
+  if not bass_file.exists():
+    print(f"File {bass_file} is missing.")
+
+  drums_file = Path(src) / 'drums.wav'
+  if not drums_file.exists():
+    print(f"File {drums_file} is missing.")
+
+  other_file = Path(src) / 'other.wav'
+  if not other_file.exists():
+    print(f"File {other_file} is missing.")
+
+  vocals_file = Path(src) / 'vocals.wav'
+  if not vocals_file.exists():
+    print(f"File {vocals_file} is missing.")
+
+
+  sig_bass = Signal(str(bass_file), num_channels=1)
+  sig_drums = Signal(str(drums_file), num_channels=1)
+  sig_other = Signal(str(other_file), num_channels=1)
+  sig_vocals = Signal(str(vocals_file), num_channels=1)
 
   spec_bass = processor(sig_bass)
   spec_drums = processor(sig_drums)

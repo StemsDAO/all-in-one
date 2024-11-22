@@ -76,108 +76,33 @@ def analyze(
   """
 
   # Clean up the arguments.
-  return_list = True
-  if not isinstance(paths, list):
-    return_list = False
-    paths = [paths]
-  if not paths:
-    raise ValueError('At least one path must be specified.')
-  paths = [mkpath(p) for p in paths]
-  paths = expand_paths(paths)
-  check_paths(paths)
-  demix_dir = mkpath(demix_dir)
   spec_dir = mkpath(spec_dir)
 
-  # Check if the results are already computed.
-  if out_dir is None or overwrite:
-    todo_paths = paths
-    exist_paths = []
-  else:
-    out_paths = [mkpath(out_dir) / path.with_suffix('.json').name for path in paths]
-    todo_paths = [path for path, out_path in zip(paths, out_paths) if not out_path.exists()]
-    exist_paths = [out_path for path, out_path in zip(paths, out_paths) if out_path.exists()]
-
-  print(f'=> Found {len(exist_paths)} tracks already analyzed and {len(todo_paths)} tracks to analyze.')
-  if exist_paths:
-    print(f'=> To re-analyze, please use --overwrite option.')
-
-  # Load the results for the tracks that are already analyzed.
-  results = []
-  if exist_paths:
-    results += [
-      load_result(
-        exist_path,
-        load_activations=include_activations,
-        load_embeddings=include_embeddings,
-      )
-      for exist_path in tqdm(exist_paths, desc='Loading existing results')
-    ]
-
   # Analyze the tracks that are not analyzed yet.
-  if todo_paths:
-    if len(demucs_paths) == 0:
-        # Run HTDemucs for source separation only for the tracks that are not analyzed yet.
-        demucs_paths = demix(todo_paths, demix_dir, device)
+  # Extract spectrograms for the tracks that are not analyzed yet.
+  spec_paths = extract_spectrograms(demucs_paths, spec_dir, multiprocess)
 
-    # Extract spectrograms for the tracks that are not analyzed yet.
-    spec_paths = extract_spectrograms(demucs_paths, spec_dir, multiprocess)
+  # Load the model.
+  model = load_pretrained_model(model_name=model, device=device)
 
-    # Load the model.
-    model = load_pretrained_model(
-      model_name=model,
-      device=device,
-    )
+  with torch.no_grad():
+    pbar = tqdm(zip(demucs_paths, spec_paths), total=len(demucs_paths))
+    for path, spec_path in pbar:
+      pbar.set_description(f'Analyzing {path.name}')
 
-    with torch.no_grad():
-      pbar = tqdm(zip(todo_paths, spec_paths), total=len(todo_paths))
-      for path, spec_path in pbar:
-        pbar.set_description(f'Analyzing {path.name}')
+      result = run_inference(
+        path=path,
+        spec_path=spec_path,
+        model=model,
+        device=device,
+        include_activations=include_activations,
+        include_embeddings=include_embeddings,
+      )
 
-        result = run_inference(
-          path=path,
-          spec_path=spec_path,
-          model=model,
-          device=device,
-          include_activations=include_activations,
-          include_embeddings=include_embeddings,
-        )
+      results.append(result)
 
-        # Save the result right after the inference.
-        # Checkpointing is always important for this kind of long-running tasks...
-        # for my mental health...
-        if out_dir is not None:
-          save_results(result, out_dir)
+  for path in spec_paths:
+    path.unlink(missing_ok=True)
+  rmdir_if_empty(spec_dir)
 
-        results.append(result)
-
-  # Sort the results by the original order of the tracks.
-  results = sorted(results, key=lambda result: paths.index(result.path))
-
-  if visualize:
-    if visualize is True:
-      visualize = './viz'
-    _visualize(results, out_dir=visualize, multiprocess=multiprocess)
-    print(f'=> Plots are successfully saved to {visualize}')
-
-  if sonify:
-    if sonify is True:
-      sonify = './sonif'
-    _sonify(results, out_dir=sonify, multiprocess=multiprocess)
-    print(f'=> Sonified tracks are successfully saved to {sonify}')
-
-  if not keep_byproducts:
-# don't need this part since we are providing stem files via temp folder
-#     for path in demucs_paths:
-#       for stem in ['bass', 'drums', 'other', 'vocals']:
-#         (path / f'{stem}.wav').unlink(missing_ok=True)
-#       rmdir_if_empty(path)
-#     rmdir_if_empty(demix_dir / 'htdemucs')
-#     rmdir_if_empty(demix_dir)
-
-    for path in spec_paths:
-      path.unlink(missing_ok=True)
-    rmdir_if_empty(spec_dir)
-
-  if not return_list:
-    return results[0]
-  return results
+  return results[0]
