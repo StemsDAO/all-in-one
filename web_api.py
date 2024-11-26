@@ -35,6 +35,8 @@ def upload_to_s3(file_name, bucket_name, object_name):
 async def get_audio_features(r: GetAudioFeaturesBaseRequest):
     audio_features = {}
 
+    print('Start Loading: ' + r.mix_path)
+
     # Download files
     with TemporaryDirectory(dir=path, prefix="stems_demucs_"+str(uuid.uuid4())) as temp_dir:
         with ExitStack() as stack:
